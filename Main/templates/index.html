@@ -7,6 +7,14 @@
     <title>LearnCodeNow</title>
 </head>
 <body>
-    <h1>WORKING</h1>
+    <form method="post" action="{% url 'index' %}">
+        {% csrf_token %}
+        <label for="user_input">Enter your text:</label>
+        <input type="text" id="user_input_url" name="user_input_url">
+        <input type="submit" value="Submit">
+    </form>
+    {% if result %}
+    <p>{{ result }}</p>
+    {% endif %} 
 </body>
 </html>
