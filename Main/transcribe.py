@@ -71,12 +71,9 @@ def process_input(user_input):
 
 '''
 def process_input(user_input): # grabs user input
-    outls = [] # creates an array 
     video_id = user_input  # makes the video Id the user input
     tx = YouTubeTranscriptApi.get_transcript(video_id, languages=['en']) #gets the transcript in dict format
-    for segment in tx: # for each segment in the tx dict grab the text (timestamps excluded)
-        outtxt = segment['text']
-        outls.append(outtxt) # each text from each segment is added to the array 
+    outls = [segment['text'] for segment in tx] # creates an array and for each segment in the tx dict grab the text and append it(timestamps excluded)
     return '\n'.join(outls) #return the combined array seperated by a newline 
 
 
