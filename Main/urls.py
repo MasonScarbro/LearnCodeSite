@@ -8,6 +8,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path("", views.index, name='index'),
-    path("chatbot/", views.chatbot, name='chatbot')
+    path("chatbot/", views.chatbot, name='chatbot'),
+    path("chatTest/", views.chatTest, name='chatTest')
 
 ]

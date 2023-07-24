@@ -1,0 +1,187 @@
+
+{% block styles %}
+<style>
+    body, html {
+      height: 100%;
+    }
+
+    .messages-box {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .messages-list {
+      padding-left: 0;
+    }
+
+    .message {
+      margin-bottom: 15px;
+      list-style: none;
+    }
+
+    .message-text {
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    .sent {
+      background-color: #dcf8c6;
+      align-self: flex-end;
+    }
+
+    .received {
+      background-color: #f1f0f0;
+      align-self: flex-start;
+    }
+
+    .message-form {
+      display: flex;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 10px;
+      background-color: #f8f9fa;
+    }
+
+    .message-input {
+      flex: 1;
+      border-radius: 0;
+      border-right: none;
+    }
+
+    .btn-send {
+      border-radius: 0;
+    }
+
+    .chat-container {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+  </style>
+{% endblock %}
+
+<div class="chat-container">
+    <div class="card flex-grow-1">
+      <div class="card-header bg-primary text-white">MCQ Test</div>
+      <div class="card-body messages-box">
+        
+        <ul class="list-unstyled messages-list">
+          <!-- Show the initial AI message here -->
+          <li class="message received">
+            <div class="message-text">
+              <div class="message-sender">
+                <b>Your Lesson Planner</b>
+              </div>
+              <div class="message-content">
+                {{ messsage }}
+              </div>
+            </div>
+          </li>
+          <!-- If the AI has a response to the initial message, show it here -->
+          {% if response %}
+          <li class="message sent">
+            <div class="message-text">
+              <div class="message-sender">
+                <b>You<b>
+              </div>
+              <div class="message-content">
+                {{ response }}
+              </div>
+            </div>
+          </li>
+          {% endif %}
+        </ul>
+        
+      </div>
+      <br><br>
+      <br><br>
+      <br><br>
+    </div>
+    <form class="message-form">
+      {% csrf_token %}
+      <div class="input-group">
+        <input type="text" class="form-control message-input" placeholder="Type your message...">
+        <div class="input-group-append">
+          <button type="submit" class="btn btn-primary btn-send">Send</button>
+        </div>
+      </div>
+    </form>
+  </div>
+  
+  <script>
+  // Send the initial message when the page loads
+  document.addEventListener('DOMContentLoaded', () => {
+    const initialMessage = "{{ initial_message }}";
+    sendMessageToChatbot(initialMessage);
+  });
+  
+  // Function to send a message to the chatbot
+  function sendMessageToChatbot(message) {
+    const messageList = document.querySelector('.messages-list');
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    // USER MESSAGE DISPLAY ''TURNED OFF'' FOR NOW
+    /*
+    if (message) {
+      const messageItem = document.createElement('li');
+      messageItem.classList.add('message', 'sent');
+      messageItem.innerHTML = `
+        <div class="message-text">
+          <div class="message-sender">
+            <b>You</b>
+          </div>
+          <div class="message-content">
+            ${message}
+          </div>
+        </div>`;
+      messageList.appendChild(messageItem);
+    }
+    */
+
+    // Send the message to the backend
+    fetch('', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': csrftoken
+      },
+      body: new URLSearchParams({
+        'csrfmiddlewaretoken': csrftoken,
+        'message': message
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      const response = data.response;
+      // Display the AI's response in the chat interface
+      const responseItem = document.createElement('li'); // creates the list element for response
+      responseItem.classList.add('message', 'received'); // Useless just to recognize it is recieved
+      // Creates the new message with the classes to style with content being the fetched respONSE
+      responseItem.innerHTML = `
+        <div class="message-text">
+          <div class="message-sender">
+            <b>Your Lesson Planner</b>
+          </div>
+          <div class="message-content">
+            ${response} 
+          </div>
+        </div>`;
+      messageList.appendChild(responseItem);
+    });
+  }
+  
+  // Handle form submission to send user messages
+  const messageForm = document.querySelector('.message-form');
+  messageForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const messageInput = document.querySelector('.message-input');
+    const message = messageInput.value.trim();
+    if (message.length === 0) {
+      return
+    }
+    sendMessageToChatbot(message);
+    messageInput.value = '';
+  });
+  </script>

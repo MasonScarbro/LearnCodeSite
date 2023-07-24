@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from . import transcribe
 from django.http import JsonResponse
@@ -26,13 +26,12 @@ def ask_openai(message):
 def index(request):
     template = 'index.html'
 
-    if request.method == 'POST': #POST needed for from submission see docs, if form was submitted
-        user_input = request.POST.get('user_input_url', '')  # Get the input value from the POST data
-        result = transcribe.process_input(user_input)  # Call the function from transcribe.py
-        context = {'result': result} #stored context dict with key result, making it accesible in the template
-        return render(request, template, context)
-    context = {}
-    return render(request, template, context)
+    if request.method == 'POST':
+        user_input_url = request.POST.get('user_input_url')
+        transcript = transcribe.process_input(user_input_url)
+        request.session['transcript'] = transcript  # Store the transcript in the session
+        return redirect('chatTest')  # Redirect to the chat page
+    return render(request, 'index.html')
     
 def chatbot(request):
     if request.method == 'POST':
@@ -40,4 +39,13 @@ def chatbot(request):
         response = ask_openai(message)
         return JsonResponse({'message': message, 'response': response})
     return render(request, 'chatbot.html')
-        
+
+def chatTest(request):
+    if request.method == 'POST':
+        message = request.POST.get('message')
+        response = ask_openai(message)
+        return JsonResponse({'message': message, 'response': response})
+    else:
+        # Send the initial message from the backend
+        initial_message = request.session.get('transcript') #Supposedly pulls from the transcript
+        return render(request, 'chatTest.html', {'initial_message': initial_message})
